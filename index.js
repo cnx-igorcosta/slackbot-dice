@@ -1,9 +1,10 @@
 var SlackBot = require('slackbots');
 
+var token = process.env.BOT_API_KEY;
+
 // create a bot
 var bot = new SlackBot({
-    //token: 'xoxb-18668002486-Mg3WsknoDVfawURAHxzxzSIG', // Add a bot https://my.slack.com/services/new/bot and put the token
-    token: 'xoxb-18674222631-oO1qMAYaz31JvkGdpoyXvJjk', // Add a bot https://my.slack.com/services/new/bot and put the token
+    token: token, // Add a bot https://my.slack.com/services/new/bot and put the token
     name: 'dice'
 });
 
@@ -15,7 +16,8 @@ bot.on('start', function() {
 
     // define channel, where bot exist. You can adjust it there https://my.slack.com/services
     bot.postMessageToChannel('general', 'Rolagem de dados está no ar! \nPara rolar um dado digite  "dice" e o dado que você quer que eu role, exemplo: "dice 3d6". \n Bom jogo! ', params);
-    //bot.postMessageToChannel('general', 'teste dice', params);
+    bot.postMessageToChannel('fichas', 'Rolagem de dados está no ar! \nPara rolar um dado digite  "dice" e o dado que você quer que eu role, exemplo: "dice 3d6". \n Bom jogo! ', params);
+    bot.postMessageToChannel('mesa-de-jogo', 'Rolagem de dados está no ar! \nPara rolar um dado digite  "dice" e o dado que você quer que eu role, exemplo: "dice 3d6". \n Bom jogo! ', params);
 
     // define existing username instead of 'user_name'
     bot.postMessageToUser('user_name', params.username, params);
@@ -57,7 +59,9 @@ var isMentioningDice = function (message) {
 var rollDice = function(originalMessage) {
   var channel = getChannelById(originalMessage.channel);
   var resultado = rolarDado(originalMessage.text);
+  if(resultado){
     bot.postMessageToChannel(channel.name, resultado, {as_user: true});
+  }
 }
 
 var getChannelById = function (channelId) {
@@ -69,11 +73,11 @@ var getChannelById = function (channelId) {
 var rolarDado = function(message){
   var dado = message.replace(/ /g,'').replace(/(D|d)ice/g,'');
   var resultado = "Resultado ";
+  var total = 0;
   if(/^\d+[d]\d+$/.test(dado)){
     var vezes = parseInt(dado.substring(0, dado.indexOf('d')));
     var faces = parseInt(dado.substring((dado.indexOf('d')+1),(dado.length)));
     resultado = resultado + dado + " = ";
-    var total = 0;
     for(var i = 0; i<(vezes); i++){
       var valor = Math.floor((Math.random() * faces) + 1);
       if(i > 0){
@@ -83,5 +87,5 @@ var rolarDado = function(message){
       total = total+valor;
     }
   }
-  return resultado + "; Total: "+total;
+  return (total ? resultado + "; Total: "+total : null);
 };
